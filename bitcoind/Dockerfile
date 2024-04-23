@@ -1,8 +1,14 @@
 # $USER name, and data $DIR to be used in the `final` image
 ARG USER=bitcoind
 ARG DIR=/data
+ARG VERSION=v26.1
+ARG REPOSITORY=https://github.com/bitcoin/bitcoin.git
+
 
 FROM debian:bookworm-slim AS downloader
+
+ARG VERSION
+ARG REPOSITORY
 
 RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
@@ -21,9 +27,9 @@ ENV BUILDER_KEYS 982A193E3CE0EED535E09023188CBB2648416AD5 101598DC823C1B5F9A6624
                  C388F6961FB972A95678E327F62711DBDCA8AE56 9DEAE0DC7063249FB05474681E4AED62986CD25D
 
 RUN gpg --keyserver keyserver.ubuntu.com --recv-keys $BUILDER_KEYS
-RUN git clone -b "v26.1" --depth=1 https://github.com/bitcoin/bitcoin.git "/bitcoin/"
+RUN git clone -b "$VERSION" --depth=1 "$REPOSITORY" "/bitcoin/"
 RUN cd "/bitcoin/" && \
-    git verify-tag "v26.1"
+    git verify-tag "$VERSION"
 
 
 FROM debian:bookworm-slim AS builder
@@ -65,14 +71,6 @@ RUN ./configure \
 RUN make -j$(( $(nproc) + 1 ))
 RUN make install
 
-# List installed binaries pre-strip & strip them
-RUN ls -lh "/opt/bitcoin/bin/"
-RUN strip -v "/opt/bitcoin/bin/bitcoin"*
-
-# List installed binaries post-strip & print their checksums
-RUN ls -lh "/opt/bitcoin/bin/"
-RUN sha256sum "/opt/bitcoin/bin/bitcoin"*
-
 
 FROM debian:bookworm-slim AS final
 
@@ -81,7 +79,7 @@ ARG DIR
 
 LABEL maintainer="Jesse de Wit (@JssDWt)"
 
-COPY  --from=builder /opt/bitcoin/bin/bitcoin*  /usr/local/bin/
+COPY --from=builder /opt/bitcoin/ /opt/bitcoin/
 
 RUN adduser --disabled-password \
             --home "$DIR/" \
