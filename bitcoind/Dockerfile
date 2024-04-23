@@ -2,26 +2,14 @@
 ARG USER=bitcoind
 ARG DIR=/data
 
-FROM alpine:3.19.1 AS builder
+FROM debian:bookworm-slim AS downloader
 
-RUN apk add --no-cache \
-        gnupg \
+RUN apt-get update -qq && \
+    apt-get install -qq -y --no-install-recommends \
+        ca-certificates \
         git \
-        autoconf \
-        automake \
-        boost-dev \
-        sqlite-dev \
-        build-base \
-        chrpath \
-        file \
-        libevent-dev \
-        libressl \
-        libtool \
-        linux-headers \
-        zeromq-dev
+        gnupg
 
-# Guix Builder Keys: https://github.com/bitcoin-core/guix.sigs/tree/main/builder-keys
-# curl -s "https://api.github.com/repos/bitcoin-core/guix.sigs/contents/builder-keys" | jq -r '.[].download_url'
 ENV BUILDER_KEYS 982A193E3CE0EED535E09023188CBB2648416AD5 101598DC823C1B5F9A6624ABA5E0907A0380E6C3 9EDAFF80E080659604F4A76B2EBB056FD847F8A7 \
                  ED9BDF7AD6A55E232E84524257FF9BDBCC301009 A8FC55F3B04BA3146F3492E79303B33A305224CB 152812300785C96444D3334D17565732E08E5E41 \
                  0AD83877C1F0CD1EE9BD660AD7CC770B81FD22A8 C060A6635913D98A3587D7DB1C2491FFEB0EF770 590B7292695AFFA5B672CBB2E13FC145CD3F4304 \
@@ -33,14 +21,33 @@ ENV BUILDER_KEYS 982A193E3CE0EED535E09023188CBB2648416AD5 101598DC823C1B5F9A6624
                  C388F6961FB972A95678E327F62711DBDCA8AE56 9DEAE0DC7063249FB05474681E4AED62986CD25D
 
 RUN gpg --keyserver keyserver.ubuntu.com --recv-keys $BUILDER_KEYS
-RUN git clone  -b "v26.1"  --depth=1  https://github.com/bitcoin/bitcoin.git  "/bitcoin/"
+RUN git clone -b "v26.1" --depth=1 https://github.com/bitcoin/bitcoin.git "/bitcoin/"
 RUN cd "/bitcoin/" && \
     git verify-tag "v26.1"
 
+
+FROM debian:bookworm-slim AS builder
+
+RUN apt-get update -qq && \
+    apt-get install -qq -y --no-install-recommends \
+        build-essential \
+        libtool \
+        autotools-dev \
+        automake \
+        pkg-config \
+        bsdmainutils \
+        python3 \
+        libevent-dev \
+        libboost-dev \
+        libsqlite3-dev \
+        libzmq3-dev
+
 WORKDIR /bitcoin/
+COPY  --from=downloader /bitcoin/  ./
+
 RUN ./autogen.sh
 
-RUN ./configure LDFLAGS=-L/opt/db4/lib/ CPPFLAGS=-I/opt/db4/include/ \
+RUN ./configure \
     CXXFLAGS="-O2" \
     --prefix="/opt/bitcoin" \
     --disable-man \
@@ -67,19 +74,12 @@ RUN ls -lh "/opt/bitcoin/bin/"
 RUN sha256sum "/opt/bitcoin/bin/bitcoin"*
 
 
-FROM alpine:3.19.1 AS final
+FROM debian:bookworm-slim AS final
 
 ARG USER
 ARG DIR
 
 LABEL maintainer="Jesse de Wit (@JssDWt)"
-
-RUN apk add --no-cache \
-        libevent \
-        libsodium \
-        libstdc++ \
-        libzmq \
-        sqlite-libs
 
 COPY  --from=builder /opt/bitcoin/bin/bitcoin*  /usr/local/bin/
 
