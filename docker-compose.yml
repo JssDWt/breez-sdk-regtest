@@ -1,0 +1,76 @@
+
+services:
+  lspd:
+    image: lspd
+    networks:
+      - lspd-postgres
+      - lspd-cln
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres?sslmode=disable
+      - NODES=[{"cln":{"pluginAddress":"cln:12312","grpcAddress":"cln:8888","caCert":"/data/.lightning/regtest/ca.pem","clientCert":"/data/.lightning/regtest/client.pem","clientKey":"/data/.lightning/regtest/client-key.pem"}}]
+      - AUTO_MIGRATE_DATABASE=true
+    depends_on:
+      - postgres
+      - cln
+    volumes:
+      - lightning:/data/.lightning
+
+  postgres:
+    image: postgres:16
+    networks:
+      - lspd-postgres
+    environment:
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DATABASE=postgres
+    restart: always
+
+  cln:
+    image: lightningd-lsp
+    command:
+      --bitcoin-rpcuser=btcuser
+      --bitcoin-rpcpassword=btcpass
+      --bitcoin-rpcconnect=bitcoind
+      --bitcoin-rpcport=18443
+      --network=regtest
+      --grpc-port=8888
+      --plugin=/usr/local/bin/lspd_cln_plugin
+      --lsp-listen=0.0.0.0:12312
+      --developer
+      --dev-allowdustreserve=true
+    networks:
+      - cln-bitcoind
+      - lspd-cln
+    depends_on:
+      - bitcoind
+    volumes:
+      - lightning:/data/.lightning
+
+  bitcoind:
+    image: bitcoind
+    command:
+      -regtest
+      -server
+      -logtimestamps
+      -nolisten
+      -addresstype=bech32
+      -txindex
+      -fallbackfee=0.00000253
+      -debug=mempool
+      -debug=rpc
+      -rpcpassword=btcpass
+      -rpcuser=btcuser
+      -rpcbind=0.0.0.0
+      -rpcallowip=0.0.0.0/0
+    networks:
+      - cln-bitcoind
+  # TODO
+  # lnd
+
+networks:
+  cln-bitcoind:
+  lspd-cln:
+  lspd-postgres:
+
+volumes:
+  lightning:
