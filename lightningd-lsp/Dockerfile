@@ -1,4 +1,4 @@
-ARG VERSION=40008ce49610332a1a87586ca9636633fb862663
+ARG VERSION=162b0322cbf916971dc6d77605c9f20f0ba91559
 ARG REPOSITORY=https://github.com/breez/lspd.git
 
 FROM debian:bookworm-slim as downloader
@@ -23,11 +23,11 @@ FROM golang:bookworm AS builder
 
 WORKDIR /app
 
-COPY --from downloader /source/go.mod /source/go.sum ./
+COPY --from=downloader /source/go.mod /source/go.sum ./
 
 RUN go mod download
 
-COPY --from downloader /source/ ./
+COPY --from=downloader /source/ ./
 
 RUN make release-plugin
 

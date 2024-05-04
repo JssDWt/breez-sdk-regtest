@@ -1,7 +1,7 @@
 # $USER name, and data $DIR to be used in the `final` image
 ARG USER=cln
 ARG DIR=/data
-ARG VERSION=40008ce49610332a1a87586ca9636633fb862663
+ARG VERSION=c951e86945dee7613467e9977843f3ed6a23e76b
 ARG REPOSITORY=https://github.com/breez/lspd.git
 
 FROM debian:bookworm-slim as downloader
@@ -26,11 +26,11 @@ FROM golang:bookworm AS builder
 
 WORKDIR /app
 
-COPY --from downloader /source/go.mod /source/go.sum ./
+COPY --from=downloader /source/go.mod /source/go.sum ./
 
 RUN go mod download
 
-COPY --from downloader /source/ ./
+COPY --from=downloader /source/ ./
 
 RUN make release-lspd
 
