@@ -17,7 +17,6 @@
 - add a swapper connected to the LSP with a big fat channel
 
 ## Breez server
-- Add breez server
 - connect it to the swapper
 - connect it to LSPD
 - return internal mempool.space url

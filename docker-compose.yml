@@ -3,26 +3,28 @@ services:
   lspd:
     image: lspd
     networks:
-      - lspd-postgres
       - lspd-cln
+      - lspd-postgres
+      - server-lspd
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres?sslmode=disable
-      - NODES=[{"cln":{"pluginAddress":"cln:12312","grpcAddress":"cln:8888","caCert":"/data/.lightning/regtest/ca.pem","clientCert":"/data/.lightning/regtest/client.pem","clientKey":"/data/.lightning/regtest/client-key.pem"}}]
+      - DATABASE_URL=postgresql://lspd-user:lspd-pass@postgres-lspd/lspd-db?sslmode=disable
+      - NODES=[{"tokens":["lspd-token"],"cln":{"pluginAddress":"cln:12312","grpcAddress":"cln:8888","caCert":"/data/.lightning/regtest/ca.pem","clientCert":"/data/.lightning/regtest/client.pem","clientKey":"/data/.lightning/regtest/client-key.pem"}}]
       - AUTO_MIGRATE_DATABASE=true
+      - LSPD_PRIVATE_KEY="31d1f2a8daf0c04c78d73e2ff0673d6f1a394dc41ae5b319b7623a6139766766"
     depends_on:
-      - postgres
+      - postgres-lspd
       - cln
     volumes:
       - lightning:/data/.lightning
 
-  postgres:
+  postgres-lspd:
     image: postgres:16
     networks:
       - lspd-postgres
     environment:
-      - POSTGRES_USERNAME=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DATABASE=postgres
+      - POSTGRES_USER=lspd-user
+      - POSTGRES_PASSWORD=lspd-pass
+      - POSTGRES_DB=lspd-db
     restart: always
 
   cln:
@@ -64,13 +66,63 @@ services:
       -rpcallowip=0.0.0.0/0
     networks:
       - cln-bitcoind
-  # TODO
-  # lnd
+      - server-bitcoind
+    volumes:
+      - bitcoin:/data/.bitcoin
+    restart: always
+
+  breez-server:
+    image: breez-server
+    environment:
+      - DATABASE_URL=postgresql://server-user:server-pass@postgres-server/server-db?sslmode=disable
+      - NETWORK=regtest
+      - LSP_CONFIG={"lspd":{"lspd":{"server":"lspd:8888","token":"lspd-token","noTLS":true}}}
+      - REDIS_URL=redis:6379
+      - REDIS_DB=1
+      - GRPC_LISTEN_ADDRESS=0.0.0.0:8888
+      - HTTP_LISTEN_ADDRESS=0.0.0.0:9999
+      - CHAIN_API_SERVERS=[{"server_type":"MEMPOOL_SPACE","server_base_url":"https://mempool.space/api/"},{"server_type":"MEMPOOL_SPACE","server_base_url":"https://mempool.emzy.de/api/"}]
+      - BITCOIND_PORT=18443
+      - BITCOIND_HOST=bitcoind
+      - BITCOIND_USER=btcuser
+      - BITCOIND_PASSWORD=btcpass
+      - NO_LND=true
+      - NO_SUBSWAP=true
+      - PUBLIC_CHANNEL_TOKENS={}
+    depends_on:
+      - redis
+      - postgres-server
+    networks:
+      - server-bitcoind
+      - server-lspd
+      - server-postgres
+      - server-redis
+
+  postgres-server:
+    image: postgres:16
+    networks:
+      - server-postgres
+    environment:
+      - POSTGRES_USER=server-user
+      - POSTGRES_PASSWORD=server-pass
+      - POSTGRES_DB=server-db
+    restart: always
+
+  redis:
+    image: redis:7.2.4
+    networks:
+      - server-redis
+    restart: always
 
 networks:
   cln-bitcoind:
   lspd-cln:
   lspd-postgres:
+  server-bitcoind:
+  server-lspd:
+  server-postgres:
+  server-redis:
 
 volumes:
+  bitcoin:
   lightning:
