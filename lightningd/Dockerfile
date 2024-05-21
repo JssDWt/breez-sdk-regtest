@@ -81,9 +81,6 @@ RUN apt-get update -qq && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=bitcoind /usr/local/bin/bitcoin-cli /usr/local/bin/
-COPY --from=builder /opt/lightning/ /usr/local/
-
 RUN adduser --disabled-password \
             --home "/data/" \
             --gecos "" \
@@ -99,6 +96,9 @@ VOLUME /data/.lightning/
 
 # Lightning P2P port
 EXPOSE 9735
+
+COPY --from=bitcoind /usr/local/bin/bitcoin-cli /usr/local/bin/
+COPY --from=builder /opt/lightning/ /usr/local/
 
 ENTRYPOINT ["lightningd"]
 

@@ -42,8 +42,6 @@ ARG USER
 
 LABEL maintainer="Jesse de Wit (@JssDWt)"
 
-COPY --from=builder /app/server /usr/local/bin/
-
 RUN adduser --disabled-password \
             --home "/data" \
             --gecos "" \
@@ -56,5 +54,7 @@ EXPOSE 8080
 
 # Grpc port
 EXPOSE 9999
+
+COPY --from=builder /app/server /usr/local/bin/
 
 ENTRYPOINT ["server"]

@@ -70,8 +70,6 @@ RUN apt-get update -qq && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /opt/bitcoin/ /usr/local/
-
 RUN adduser --disabled-password \
             --home "/data" \
             --gecos "" \
@@ -96,6 +94,8 @@ EXPOSE 8332 18332 18443
 
 # ZMQ ports (for transactions & blocks respectively)
 EXPOSE 28332 28333
+
+COPY --from=builder /opt/bitcoin/ /usr/local/
 
 ENTRYPOINT ["bitcoind"]
 

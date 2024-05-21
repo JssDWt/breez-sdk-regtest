@@ -40,8 +40,6 @@ ARG USER
 
 LABEL maintainer="Jesse de Wit (@JssDWt)"
 
-COPY --from=builder /app/lspd /usr/local/bin/
-
 RUN adduser --disabled-password \
             --home "/data/" \
             --gecos "" \
@@ -53,5 +51,7 @@ ENV LISTEN_ADDRESS=0.0.0.0:8888
 
 # Grpc port
 EXPOSE 8888
+
+COPY --from=builder /app/lspd /usr/local/bin/
 
 ENTRYPOINT ["lspd"]

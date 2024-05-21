@@ -38,13 +38,13 @@ FROM lightningd AS final
 
 LABEL maintainer="Jesse de Wit (@JssDWt)"
 
-COPY --from=builder /app/lspd_cln_plugin /usr/local/bin/
-
 # lightningd grpc port
 EXPOSE 8888
 
 # cln_plugin grpc port
 EXPOSE 12312
+
+COPY --from=builder /app/lspd_cln_plugin /usr/local/bin/
 
 CMD [ \
     "--lightning-dir='/data/.lightning'" \

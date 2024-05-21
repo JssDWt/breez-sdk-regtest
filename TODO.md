@@ -22,7 +22,11 @@
 - return internal mempool.space url
 
 ## Greenlight
-- ?
+- The lightning container cannot find the certficates yet
+- The scheduler should stop on shutdown signal
 
 ## Mempool.space
 - connect mempool.space to bitcoind
+
+## Boltz
+- inspiration here: https://github.com/BoltzExchange/legend-regtest-enviroment
