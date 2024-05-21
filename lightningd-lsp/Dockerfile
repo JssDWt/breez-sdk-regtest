@@ -1,3 +1,5 @@
+# $USER name to be used in the `final` image
+ARG USER=lightning
 ARG VERSION=162b0322cbf916971dc6d77605c9f20f0ba91559
 ARG REPOSITORY=https://github.com/breez/lspd.git
 
@@ -34,6 +36,8 @@ RUN make release-plugin
 
 FROM lightningd AS final
 
+LABEL maintainer="Jesse de Wit (@JssDWt)"
+
 COPY --from=builder /app/lspd_cln_plugin /usr/local/bin/
 
 # lightningd grpc port
@@ -43,7 +47,7 @@ EXPOSE 8888
 EXPOSE 12312
 
 CMD [ \
-    "--lightning-dir='$DIR/.lightning'" \
+    "--lightning-dir='/data/.lightning'" \
     "--grpc-port=8888", \
     "--plugin=lspd_cln_plugin", \
     "--lsp-listen=0.0.0.0:12312", \

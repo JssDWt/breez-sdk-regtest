@@ -1,6 +1,5 @@
-# $USER name, and data $DIR to be used in the `final` image
+# $USER name to be used in the `final` image
 ARG USER=bitcoind
-ARG DIR=/data
 # v26.1
 ARG VERSION=0b4aa31c34b239ec7da36760a2670792184c3ba8
 ARG REPOSITORY=https://github.com/bitcoin/bitcoin.git
@@ -59,7 +58,6 @@ RUN make -j$(nproc) && \
 FROM debian:bookworm-slim AS final
 
 ARG USER
-ARG DIR
 
 LABEL maintainer="Jesse de Wit (@JssDWt)"
 
@@ -75,17 +73,17 @@ RUN apt-get update -qq && \
 COPY --from=builder /opt/bitcoin/ /usr/local/
 
 RUN adduser --disabled-password \
-            --home "$DIR/" \
+            --home "/data" \
             --gecos "" \
             "$USER"
 
 USER $USER
 
-# Prevents `VOLUME $DIR/.bitcoind/` being created as owned by `root`
-RUN mkdir -p "$DIR/.bitcoin/"
+# Prevents `VOLUME /data/.bitcoin/` being created as owned by `root`
+RUN mkdir -p "/data/.bitcoin/"
 
-# Expose volume containing all `bitcoind` data
-VOLUME $DIR/.bitcoin/
+# Expose volume containing all `bitcoin` data
+VOLUME /data/.bitcoin/
 
 # REST interface
 EXPOSE 8080

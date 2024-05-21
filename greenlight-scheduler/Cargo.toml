@@ -1,0 +1,21 @@
+[package]
+name = "scheduler"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bip39 = { version = "2.0.0", features = ["rand"] }
+clap = { version = "4.5.4", features = ["derive"] }
+gl-client = { git = "https://github.com/Blockstream/greenlight.git", features = [
+    "permissive",
+], rev = "97e2f418c331653330f9fa928ed10ed1538c27d0" }
+hex = "0.4.3"
+prost = "0.12.4"
+rcgen = { version = "0.13.1", features = ["pem", "x509-parser"] }
+tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread"] }
+tonic = "0.11.0"
+
+[build-dependencies]
+tonic-build = "0.11.0"

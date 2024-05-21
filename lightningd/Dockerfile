@@ -1,6 +1,5 @@
-# $USER name, and data $DIR to be used in the `final` image
+# $USER name to be used in the `final` image
 ARG USER=cln
-ARG DIR=/data
 # v24.02.2
 ARG VERSION=a2a136fe3ebef1d028d1e20ebf1f987b8c05bbf8
 ARG REPOSITORY=https://github.com/ElementsProject/lightning.git
@@ -72,7 +71,6 @@ RUN ./configure \
 FROM debian:bookworm-slim AS final
 
 ARG USER
-ARG DIR
 
 LABEL maintainer="Jesse de Wit (@JssDWt)"
 
@@ -87,17 +85,17 @@ COPY --from=bitcoind /usr/local/bin/bitcoin-cli /usr/local/bin/
 COPY --from=builder /opt/lightning/ /usr/local/
 
 RUN adduser --disabled-password \
-            --home "$DIR/" \
+            --home "/data/" \
             --gecos "" \
             "$USER"
 
 USER $USER
 
-# Prevents `VOLUME $DIR/.lightning/` being created as owned by `root`
-RUN mkdir -p "$DIR/.lightning/"
+# Prevents `VOLUME /data/.lightning/` being created as owned by `root`
+RUN mkdir -p "/data/.lightning/"
 
 # Expose volume containing all `lightningd` data
-VOLUME $DIR/.lightning/
+VOLUME /data/.lightning/
 
 # Lightning P2P port
 EXPOSE 9735
@@ -105,5 +103,5 @@ EXPOSE 9735
 ENTRYPOINT ["lightningd"]
 
 CMD [ \
-    "--lightning-dir='$DIR/.lightning'" \
+    "--lightning-dir='/data/.lightning'" \
 ]

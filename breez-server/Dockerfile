@@ -1,6 +1,5 @@
-# $USER name, and data $DIR to be used in the `final` image
+# $USER name to be used in the `final` image
 ARG USER=server
-ARG DIR=/data
 ARG VERSION=a7202886f782cc8305af1fb4747568e39cfb68dd
 ARG REPOSITORY=https://github.com/breez/server.git
 
@@ -40,14 +39,13 @@ RUN COMMIT=$(git rev-parse HEAD) \
 FROM debian:bookworm-slim AS final
 
 ARG USER
-ARG DIR
 
 LABEL maintainer="Jesse de Wit (@JssDWt)"
 
 COPY --from=builder /app/server /usr/local/bin/
 
 RUN adduser --disabled-password \
-            --home "$DIR/" \
+            --home "/data" \
             --gecos "" \
             "$USER"
 

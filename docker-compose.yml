@@ -3,9 +3,8 @@ services:
   lspd:
     image: lspd
     networks:
-      - lspd-cln
-      - lspd-postgres
-      - server-lspd
+      - lsp-internal
+      - breez-lsp
     environment:
       - DATABASE_URL=postgresql://lspd-user:lspd-pass@postgres-lspd/lspd-db?sslmode=disable
       - NODES=[{"tokens":["lspd-token"],"cln":{"pluginAddress":"cln:12312","grpcAddress":"cln:8888","caCert":"/data/.lightning/regtest/ca.pem","clientCert":"/data/.lightning/regtest/client.pem","clientKey":"/data/.lightning/regtest/client-key.pem"}}]
@@ -20,12 +19,14 @@ services:
   postgres-lspd:
     image: postgres:16
     networks:
-      - lspd-postgres
+      - lsp-internal
     environment:
       - POSTGRES_USER=lspd-user
       - POSTGRES_PASSWORD=lspd-pass
       - POSTGRES_DB=lspd-db
     restart: always
+    volumes:
+      - lspd-postgres:/var/lib/postgresql/data
 
   cln:
     image: lightningd-lsp
@@ -41,8 +42,8 @@ services:
       --developer
       --dev-allowdustreserve=true
     networks:
-      - cln-bitcoind
-      - lspd-cln
+      - lsp-internal
+      - public-lightning
     depends_on:
       - bitcoind
     volumes:
@@ -65,8 +66,9 @@ services:
       -rpcbind=0.0.0.0
       -rpcallowip=0.0.0.0/0
     networks:
-      - cln-bitcoind
-      - server-bitcoind
+      - lsp-internal
+      - breez-internal
+      - greenlight-internal
     volumes:
       - bitcoin:/data/.bitcoin
     restart: always
@@ -93,36 +95,84 @@ services:
       - redis
       - postgres-server
     networks:
-      - server-bitcoind
-      - server-lspd
-      - server-postgres
-      - server-redis
+      - breez-internal
+      - breez-lsp
+      - public-internet
 
   postgres-server:
     image: postgres:16
     networks:
-      - server-postgres
+      - breez-internal
     environment:
       - POSTGRES_USER=server-user
       - POSTGRES_PASSWORD=server-pass
       - POSTGRES_DB=server-db
     restart: always
+    volumes:
+      - server-postgres:/var/lib/postgresql/data
 
   redis:
     image: redis:7.2.4
     networks:
-      - server-redis
+      - breez-internal
     restart: always
 
+  node1-scheduler:
+    image: greenlight-scheduler
+    command:
+      --address=0.0.0.0:8888
+      --node-grpc-uri=node1-greenlight:8888
+      --init-path=/data/.scheduler/init
+      --cert-path=/data/.scheduler/cert
+    volumes:
+      - node1-scheduler:/data/.scheduler
+    networks:
+      - public-internet
+
+  node1-greenlight:
+    image: lightningd-greenlight
+    command:
+      --lightning-dir=/data/.lightning/
+      --network=regtest
+      --log-level=debug
+      --bitcoin-rpcuser=btcuser
+      --bitcoin-rpcpassword=btcpass
+      --bitcoin-rpcconnect=bitcoind:18443
+      --log-timestamps=false
+      --disable-plugin=commando
+      --disable-plugin=cln-grpc
+      --subdaemon=hsmd:/usr/local/bin/gl-signerproxy
+      --important-plugin=/usr/local/bin/gl-plugin
+    environment:
+      - GL_NODE_NETWORK=regtest
+      - GL_NODE_BIND=0.0.0.0:8888
+      - GL_PLUGIN_CLIENTCA_PATH=/data/.scheduler/cert/ca.pem
+      - GL_CERT_PATH=/data/.scheduler/cert
+      - RUST_LOG=gl_client=trace,gl_signerproxy=trace,gl_plugin=trace,cln_plugin=trace,cln_rpc=trace,cln_grpc=trace,info
+      - CLN_PLUGIN_LOG=gl_plugin=trace,gl_signerproxy=trace,cln_client=trace,cln_grpc=trace,cln_rpc=trace,info
+    depends_on:
+      - bitcoind
+      - node1-scheduler
+    volumes:
+      - node1-greenlight:/data/.lightning
+      - node1-scheduler:/data/.scheduler
+    networks:
+      - greenlight-internal
+      - public-lightning
+      - public-internet
+
 networks:
-  cln-bitcoind:
-  lspd-cln:
-  lspd-postgres:
-  server-bitcoind:
-  server-lspd:
-  server-postgres:
-  server-redis:
+  lsp-internal:
+  breez-lsp:
+  breez-internal:
+  public-lightning:
+  greenlight-internal:
+  public-internet:
 
 volumes:
   bitcoin:
   lightning:
+  node1-scheduler:
+  node1-greenlight:
+  server-postgres:
+  lspd-postgres:

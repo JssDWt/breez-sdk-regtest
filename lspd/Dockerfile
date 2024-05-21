@@ -1,6 +1,5 @@
-# $USER name, and data $DIR to be used in the `final` image
+# $USER name to be used in the `final` image
 ARG USER=cln
-ARG DIR=/data
 ARG VERSION=c951e86945dee7613467e9977843f3ed6a23e76b
 ARG REPOSITORY=https://github.com/breez/lspd.git
 
@@ -38,14 +37,13 @@ RUN make release-lspd
 FROM debian:bookworm-slim AS final
 
 ARG USER
-ARG DIR
 
 LABEL maintainer="Jesse de Wit (@JssDWt)"
 
 COPY --from=builder /app/lspd /usr/local/bin/
 
 RUN adduser --disabled-password \
-            --home "$DIR/" \
+            --home "/data/" \
             --gecos "" \
             "$USER"
 
