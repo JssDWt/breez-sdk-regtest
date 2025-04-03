@@ -177,6 +177,8 @@ services:
           - cln
       public-lightning:
       miner:
+    ports:
+      - 19846:19846
     volumes:
       - lsp-lightningd:/data/.lightning
 
@@ -194,7 +196,7 @@ services:
       - POSTGRES_DB=lspd-db
       - LSPD_PRIVATE_KEY="31d1f2a8daf0c04c78d73e2ff0673d6f1a394dc41ae5b319b7623a6139766766"
       - LSPD_TOKEN=${LSPD_TOKEN}
-      - NODES=[{"tokens":["${LSPD_TOKEN}"],"cln":{"pluginAddress":"cln:12312","grpcAddress":"cln:8888","caCert":"/data/.lightning/regtest/ca.pem","clientCert":"/data/.lightning/regtest/client.pem","clientKey":"/data/.lightning/regtest/client-key.pem"}}]
+      - NODES=[{"tokens":["${LSPD_TOKEN}"],"host":"localhost:19846","cln":{"pluginAddress":"cln:12312","grpcAddress":"cln:8888","caCert":"/data/.lightning/regtest/ca.pem","clientCert":"/data/.lightning/regtest/client.pem","clientKey":"/data/.lightning/regtest/client-key.pem"}}]
     image: lspd
     networks:
       - breez-lsp
