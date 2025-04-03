@@ -24,17 +24,19 @@ do
     outputcount=$(($outputcount + 1))
 done
 
+until [ -f "/data/.lightning-lsp/regtest/pubkey" ]
+do
+    echo "Waiting for lsp to dump pubkey"
+    sleep 1
+done
+
+lightning-cli --regtest --lightning-dir /data/.lightning connect "$lsp_id" lsp-lightningd
+
 channelcount=$(lightning-cli --regtest --lightning-dir /data/.lightning listpeerchannels | jq '.channels | length')
 if [ "$channelcount" -lt 1 ]
 then
     echo "Telling miner to mine 6 blocks"
     curl -i -H "Accept: application/json" "miner:8888/mine?blocks=6"
-
-    until [ -f "/data/.lightning-lsp/regtest/pubkey" ]
-    do
-        echo "Waiting for lsp to dump pubkey"
-        sleep 1
-    done
 
     while lightning-cli --regtest --lightning-dir /data/.lightning getinfo | jq -e 'has("warning_bitcoind_sync") or has("warning_lightningd_sync")' > /dev/null
     do
@@ -49,7 +51,7 @@ then
     done
     lsp_id=$(cat /data/.lightning-lsp/regtest/pubkey)
     echo "Creating channel to peer"
-    lightning-cli --regtest --lightning-dir /data/.lightning connect "$lsp_id" lsp-lightningd
+    
     lightning-cli --regtest --lightning-dir /data/.lightning fundchannel id="$lsp_id" amount=100000000sat push_msat=50000000msat
 
     echo "Telling miner to mine 7 blocks"
