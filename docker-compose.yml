@@ -164,6 +164,7 @@ services:
       --lightning-dir=/data/.lightning
       --log-level=debug
       --lsp-listen=0.0.0.0:12312
+      --max-concurrent-htlcs=30
       --network=regtest
       --plugin=/usr/local/bin/lspd_cln_plugin
     depends_on:
