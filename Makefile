@@ -16,7 +16,7 @@ docker-lightningd-lsp: docker-lightningd
 	docker build -t lightningd-lsp -f lightningd-lsp/Dockerfile lightningd-lsp
 
 docker-lspd:
-	docker build -t lspd -f lspd/Dockerfile --progress=plain lspd
+	docker build -t lspd -f lspd/Dockerfile lspd
 
 docker-miner:
 	docker build -t miner -f miner/Dockerfile miner
