@@ -1,6 +1,6 @@
 # $USER name to be used in the `final` image
 ARG USER=server
-ARG VERSION=11972745f474181de07cbe614b001a04c585f5fc
+ARG VERSION=16645e93185543ca32a9165d2d16e09957a37bce
 ARG REPOSITORY=https://github.com/breez/server.git
 ARG GOLANG_MIGRATE_VERSION=4.16.1
 
