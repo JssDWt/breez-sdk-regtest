@@ -45,7 +45,6 @@ then
     while [ $(lightning-cli --regtest --lightning-dir /data/.lightning listfunds | jq '[.outputs[] | select(.status == "confirmed")] | length') -lt 20 ]
     do
         echo "Waiting for 20 outputs to be confirmed"
-        lightning-cli --regtest --lightning-dir /data/.lightning listfunds
         sleep 1
     done
     lsp_id=$(cat /data/.lightning-lsp/regtest/pubkey)
