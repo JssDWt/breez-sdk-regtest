@@ -1,5 +1,29 @@
 
 services:
+  alice-lightningd:
+    command:
+      --bitcoin-rpcconnect=bitcoind
+      --bitcoin-rpcpassword=btcpass
+      --bitcoin-rpcport=18443
+      --bitcoin-rpcuser=btcuser
+      --database-upgrade=true
+      --grpc-host=0.0.0.0
+      --grpc-port=8888
+      --lightning-dir=/data/.lightning
+      --log-level=debug
+      --network=regtest
+    depends_on:
+      - bitcoind
+      - lsp-lightningd
+      - miner
+    image: lightningd-alice
+    networks:
+      - public-lightning
+      - miner
+    volumes:
+      - alice-lightningd:/data/.lightning
+      - lsp-lightningd:/data/.lightning-lsp
+
   bitcoind:
     command:
       -addresstype=bech32
@@ -130,14 +154,16 @@ services:
       --bitcoin-rpcpassword=btcpass
       --bitcoin-rpcport=18443
       --bitcoin-rpcuser=btcuser
+      --database-upgrade=true
       --dev-allowdustreserve=true
       --developer
       --grpc-host=0.0.0.0
       --grpc-port=8888
+      --lightning-dir=/data/.lightning
+      --log-level=debug
       --lsp-listen=0.0.0.0:12312
       --network=regtest
       --plugin=/usr/local/bin/lspd_cln_plugin
-      --database-upgrade=true
     depends_on:
       - bitcoind
       - miner
@@ -210,6 +236,7 @@ volumes:
   bitcoin:
   # greenlight-node1:
   # greenlight-node1-scheduler:
+  alice-lightningd:
   lsp-lightningd:
   lspd-postgres:
   server-postgres:

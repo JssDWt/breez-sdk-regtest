@@ -21,6 +21,7 @@ use tokio::{
 };
 use tokio_util::sync::CancellationToken;
 
+const INITIAL_BLOCK_COUNT: u64 = 201;
 #[derive(Debug, Parser, Clone)]
 #[command(name = "miner")]
 #[command(about = "Mines blocks and generously sends funds to anyone who asks.", long_about = None)]
@@ -35,6 +36,11 @@ struct Cli {
     pub bitcoin_rpcpassword: String,
     #[arg(long)]
     pub block_interval_secs: u64,
+}
+
+#[derive(Deserialize)]
+struct MineParams {
+    pub blocks: u64,
 }
 
 #[derive(Clone)]
@@ -79,15 +85,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
 
             println!("connected to bitcoind. blockheight {}.", block_count);
-            if block_count < 101 {
+            if block_count < INITIAL_BLOCK_COUNT {
                 rpc.create_wallet("default", None, None, None, None)
                     .expect("failed create wallet");
                 let address = rpc
                     .get_new_address(Some("initial blocks"), Some(AddressType::Bech32))
                     .expect("failed create address for initial blocks");
-                rpc.generate_to_address(101, &address.assume_checked())
+                rpc.generate_to_address(INITIAL_BLOCK_COUNT, &address.assume_checked())
                     .expect("failed to mine initial blocks");
-                println!("mined initial 101 blocks")
+                println!("mined initial {} blocks", INITIAL_BLOCK_COUNT)
             } else {
                 rpc.load_wallet("default").expect("failed load wallet");
             }
@@ -123,10 +129,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start the server to send funds generously.
     let app = Router::new()
         .route("/send", get(send))
+        .route("/mine", get(mine))
         .with_state(RestState {
             cli: args.clone(),
             token: child_token,
         });
+
     let listener = TcpListener::bind(args.address).await?;
     let (server_close_tx, server_close_rx) = tokio::sync::oneshot::channel();
     let server_handle = tokio::spawn(async {
@@ -159,6 +167,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     Ok(())
+}
+
+async fn mine(params: Query<MineParams>, State(args): State<RestState>) -> impl IntoResponse {
+    // Ensure the wallet is active.
+    args.token.cancelled().await;
+
+    let rpc = Client::new(
+        &args.cli.bitcoin_rpcconnect,
+        Auth::UserPass(args.cli.bitcoin_rpcuser, args.cli.bitcoin_rpcpassword),
+    )
+    .unwrap();
+
+    let address = rpc
+        .get_new_address(Some("initial blocks"), Some(AddressType::Bech32))
+        .expect("failed create address for initial blocks");
+    rpc.generate_to_address(params.blocks, &address.assume_checked())
+        .expect("failed to mine initial blocks");
+    println!("mined {} blocks on request", params.blocks);
+    Json("")
 }
 
 async fn send(params: Query<SendParams>, State(args): State<RestState>) -> impl IntoResponse {

@@ -65,7 +65,7 @@ COPY --from=builder /app/lspd_cln_plugin /usr/local/bin/
 ENTRYPOINT ["/entrypoint.sh"]
 
 CMD [ \
-    "--lightning-dir='/data/.lightning'" \
+    "--lightning-dir='/data/.lightning'", \
     "--grpc-port=8888", \
     "--plugin=lspd_cln_plugin", \
     "--lsp-listen=0.0.0.0:12312", \

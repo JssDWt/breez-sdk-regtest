@@ -1,4 +1,4 @@
-default: docker-bitcoind docker-breez-server docker-lightningd-lsp docker-lspd docker-miner
+default: docker-bitcoind docker-breez-server docker-lightningd-alice docker-lightningd-lsp docker-lspd docker-miner
 
 docker-bitcoind:
 	docker build -t bitcoind -f bitcoind/Dockerfile bitcoind
@@ -8,6 +8,9 @@ docker-breez-server:
 
 docker-lightningd: docker-bitcoind
 	docker build -t lightningd -f lightningd/Dockerfile lightningd
+
+docker-lightningd-alice:
+	docker build -t lightningd-alice -f lightningd-alice/Dockerfile lightningd-alice
 
 docker-lightningd-greenlight: docker-lightningd
 	docker build -t lightningd-greenlight -f lightningd-greenlight/Dockerfile lightningd-greenlight
