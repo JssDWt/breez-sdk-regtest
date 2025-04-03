@@ -1,9 +1,9 @@
 # $USER name to be used in the `final` image
-ARG USER=lightning
+ARG USER=cln
 ARG VERSION=162b0322cbf916971dc6d77605c9f20f0ba91559
 ARG REPOSITORY=https://github.com/breez/lspd.git
 
-FROM debian:bookworm-slim as downloader
+FROM debian:bookworm-slim AS downloader
 
 ARG VERSION
 ARG REPOSITORY
@@ -36,7 +36,23 @@ RUN make release-plugin
 
 FROM lightningd AS final
 
+ARG USER
+
 LABEL maintainer="Jesse de Wit (@JssDWt)"
+
+USER root
+
+RUN apt-get update -qq && \
+    apt-get install -qq -y --no-install-recommends \
+        curl \
+        jq && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+
+USER $USER
 
 # lightningd grpc port
 EXPOSE 8888
@@ -45,6 +61,8 @@ EXPOSE 8888
 EXPOSE 12312
 
 COPY --from=builder /app/lspd_cln_plugin /usr/local/bin/
+
+ENTRYPOINT ["/entrypoint.sh"]
 
 CMD [ \
     "--lightning-dir='/data/.lightning'" \

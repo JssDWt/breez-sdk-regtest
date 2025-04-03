@@ -1,9 +1,10 @@
 # $USER name to be used in the `final` image
 ARG USER=cln
-ARG VERSION=c951e86945dee7613467e9977843f3ed6a23e76b
+ARG VERSION=c7ce06c5456e0a7fe3b14c5c83dfc1c9c433258d
 ARG REPOSITORY=https://github.com/breez/lspd.git
+ARG GOLANG_MIGRATE_VERSION=4.16.1
 
-FROM debian:bookworm-slim as downloader
+FROM debian:bookworm-slim AS downloader
 
 ARG VERSION
 ARG REPOSITORY
@@ -34,6 +35,29 @@ COPY --from=downloader /source/ ./
 RUN make release-lspd
 
 
+FROM debian:bookworm-slim AS migrate
+
+ARG GOLANG_MIGRATE_VERSION
+
+WORKDIR /
+
+RUN apt-get update -qq && \
+    apt-get install -qq -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        tar
+
+RUN ARCH=$(uname -m); \
+    case "$ARCH" in \
+        aarch64) ARCH="arm64" ;; \
+        x86_64)  ARCH="amd64" ;; \
+        armv7l)  ARCH="armv7" ;; \
+        i386)    ARCH="386" ;; \
+    esac && \
+    curl -L -o migrate.tar.gz "https://github.com/golang-migrate/migrate/releases/download/v${GOLANG_MIGRATE_VERSION}/migrate.linux-${ARCH}.tar.gz" && \
+    tar xvzf migrate.tar.gz -C /
+
+
 FROM debian:bookworm-slim AS final
 
 ARG USER
@@ -45,6 +69,14 @@ RUN adduser --disabled-password \
             --gecos "" \
             "$USER"
 
+RUN apt-get update -qq && \
+    apt-get install -qq -y --no-install-recommends \
+        postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+
 USER $USER
 
 ENV LISTEN_ADDRESS=0.0.0.0:8888
@@ -53,5 +85,7 @@ ENV LISTEN_ADDRESS=0.0.0.0:8888
 EXPOSE 8888
 
 COPY --from=builder /app/lspd /usr/local/bin/
+COPY --from=migrate /migrate /usr/local/bin/
+COPY --from=builder /app/postgresql/migrations/ /migrations/
 
-ENTRYPOINT ["lspd"]
+ENTRYPOINT ["/entrypoint.sh"]

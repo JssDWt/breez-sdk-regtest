@@ -1,7 +1,8 @@
+ARG USER=cln
 ARG VERSION=157208cc771be99a7744d100564c5a44afa41b8f
 ARG REPOSITORY=https://github.com/JssDWt/greenlight.git
 
-FROM debian:bookworm-slim as downloader
+FROM debian:bookworm-slim AS downloader
 
 ARG VERSION
 ARG REPOSITORY
@@ -19,7 +20,7 @@ RUN git init && \
     git checkout FETCH_HEAD
 
 
-FROM rust:1.78-slim-bookworm as plugin-builder
+FROM rust:1.78-slim-bookworm AS plugin-builder
 
 RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
@@ -36,7 +37,7 @@ WORKDIR /app/libs/gl-plugin
 
 RUN cargo build --release
 
-FROM rust:1.78-slim-bookworm as signerproxy-builder
+FROM rust:1.78-slim-bookworm AS signerproxy-builder
 
 RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
@@ -55,10 +56,18 @@ RUN cargo build --release
 
 FROM lightningd AS final
 
+ARG USER
+
 LABEL maintainer="Jesse de Wit (@JssDWt)"
+
+USER root
+
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+
+USER $USER
 
 COPY --from=plugin-builder /app/target/release/gl-plugin /usr/local/bin/
 COPY --from=signerproxy-builder /app/target/release/gl-signerproxy /usr/local/bin/
-COPY entrypoint.sh /usr/local/bin/
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]

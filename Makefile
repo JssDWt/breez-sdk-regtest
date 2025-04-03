@@ -1,4 +1,4 @@
-default: docker-bitcoind docker-breez-server docker-lightningd docker-lightningd-greenlight docker-lightningd-lsp docker-lspd docker-scheduler
+default: docker-bitcoind docker-breez-server docker-lightningd-lsp docker-lspd docker-miner
 
 docker-bitcoind:
 	docker build -t bitcoind -f bitcoind/Dockerfile bitcoind
@@ -16,7 +16,10 @@ docker-lightningd-lsp: docker-lightningd
 	docker build -t lightningd-lsp -f lightningd-lsp/Dockerfile lightningd-lsp
 
 docker-lspd:
-	docker build -t lspd -f lspd/Dockerfile lspd
+	docker build -t lspd -f lspd/Dockerfile --progress=plain lspd
+
+docker-miner:
+	docker build -t miner -f miner/Dockerfile miner
 
 docker-scheduler:
 	docker build -t greenlight-scheduler -f greenlight-scheduler/Dockerfile greenlight-scheduler

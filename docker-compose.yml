@@ -18,8 +18,9 @@ services:
     image: bitcoind
     networks:
       - breez-internal
-      - greenlight-internal
+      # - greenlight-internal
       - lsp-internal
+      - miner
     restart: always
     volumes:
       - bitcoin:/data/.bitcoin
@@ -35,15 +36,25 @@ services:
       - BITCOIND_USER=btcuser
       - CHAIN_API_SERVERS=[{"server_type":"MEMPOOL_SPACE","server_base_url":"https://mempool.space/api/"},{"server_type":"MEMPOOL_SPACE","server_base_url":"https://mempool.emzy.de/api/"}]
       - DATABASE_URL=postgresql://server-user:server-pass@breez-server-postgres/server-db?sslmode=disable
+      - POSTGRES_HOST=breez-server-postgres
+      - PGPASSWORD=server-pass
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=server-user
+      - POSTGRES_DB=server-db
       - GRPC_LISTEN_ADDRESS=0.0.0.0:8888
       - HTTP_LISTEN_ADDRESS=0.0.0.0:9999
-      - LSP_CONFIG={"lspd":{"lspd":{"server":"lspd:8888","token":"lspd-token","noTLS":true}}}
+      - LSP_CONFIG={"lspd":{"${LSP_ID}":{"server":"lspd:8888","token":"${LSPD_TOKEN}","noTLS":true}}}
+      - LSP_ID=${LSP_ID}
+      - LSP_TOKEN=${LSPD_TOKEN}
       - NETWORK=regtest
+      - NO_LIQUID=true
       - NO_LND=true
       - NO_SUBSWAP=true
+      - NO_SWAPD=true
       - PUBLIC_CHANNEL_TOKENS={}
       - REDIS_URL=breez-server-redis:6379
       - REDIS_DB=1
+      - SDK_API_KEY=${SDK_API_KEY}
     image: breez-server
     networks:
       - breez-internal
@@ -68,50 +79,49 @@ services:
       - breez-internal
     restart: always
 
-  greenlight-node1:
-    command:
-      --bitcoin-rpcconnect=bitcoind:18443
-      --bitcoin-rpcpassword=btcpass
-      --bitcoin-rpcuser=btcuser
-      --disable-plugin=cln-grpc
-      --disable-plugin=commando
-      --important-plugin=/usr/local/bin/gl-plugin
-      --lightning-dir=/data/.lightning/
-      --log-level=debug
-      --log-timestamps=false
-      --network=regtest
-      --subdaemon=hsmd:/usr/local/bin/gl-signerproxy
-    depends_on:
-      - bitcoind
-      - greenlight-node1-scheduler
-    environment:
-      - CLN_PLUGIN_LOG=gl_plugin=trace,gl_signerproxy=trace,cln_client=trace,cln_grpc=trace,cln_rpc=trace,info
-      - GL_CERT_PATH=/data/.scheduler/cert
-      - GL_NODE_BIND=0.0.0.0:8888
-      - GL_NODE_NETWORK=regtest
-      - GL_PLUGIN_CLIENTCA_PATH=/data/.scheduler/cert/ca.pem
-      - RUST_LOG=gl_client=trace,gl_signerproxy=trace,gl_plugin=trace,cln_plugin=trace,cln_rpc=trace,cln_grpc=trace,info
-      
-    image: lightningd-greenlight
-    networks:
-      - greenlight-internal
-      - public-lightning
-      - public-internet
-    volumes:
-      - greenlight-node1:/data/.lightning
-      - greenlight-node1-scheduler:/data/.scheduler
+  # greenlight-node1:
+  #   command:
+  #     --bitcoin-rpcconnect=bitcoind:18443
+  #     --bitcoin-rpcpassword=btcpass
+  #     --bitcoin-rpcuser=btcuser
+  #     --disable-plugin=cln-grpc
+  #     --disable-plugin=commando
+  #     --important-plugin=/usr/local/bin/gl-plugin
+  #     --lightning-dir=/data/.lightning/
+  #     --log-level=debug
+  #     --log-timestamps=false
+  #     --network=regtest
+  #     --subdaemon=hsmd:/usr/local/bin/gl-signerproxy
+  #   depends_on:
+  #     - bitcoind
+  #     - greenlight-node1-scheduler
+  #   environment:
+  #     - CLN_PLUGIN_LOG=gl_plugin=trace,gl_signerproxy=trace,cln_client=trace,cln_grpc=trace,cln_rpc=trace,info
+  #     - GL_CERT_PATH=/data/.scheduler/cert
+  #     - GL_NODE_BIND=0.0.0.0:8888
+  #     - GL_NODE_NETWORK=regtest
+  #     - GL_PLUGIN_CLIENTCA_PATH=/data/.scheduler/cert/ca.pem
+  #     - RUST_LOG=gl_client=trace,gl_signerproxy=trace,gl_plugin=trace,cln_plugin=trace,cln_rpc=trace,cln_grpc=trace,info
+  #   image: lightningd-greenlight
+  #   networks:
+  #     - greenlight-internal
+  #     - public-lightning
+  #     - public-internet
+  #   volumes:
+  #     - greenlight-node1:/data/.lightning
+  #     - greenlight-node1-scheduler:/data/.scheduler
 
-  greenlight-node1-scheduler:
-    command:
-      --address=0.0.0.0:8888
-      --cert-path=/data/.scheduler/cert
-      --init-path=/data/.scheduler/init
-      --node-grpc-uri=node1-greenlight:8888
-    image: greenlight-scheduler
-    networks:
-      - public-internet
-    volumes:
-      - greenlight-node1-scheduler:/data/.scheduler
+  # greenlight-node1-scheduler:
+  #   command:
+  #     --address=0.0.0.0:8888
+  #     --cert-path=/data/.scheduler/cert
+  #     --init-path=/data/.scheduler/init
+  #     --node-grpc-uri=node1-greenlight:8888
+  #   image: greenlight-scheduler
+  #   networks:
+  #     - public-internet
+  #   volumes:
+  #     - greenlight-node1-scheduler:/data/.scheduler
 
   lsp-lightningd:
     command:
@@ -121,16 +131,23 @@ services:
       --bitcoin-rpcuser=btcuser
       --dev-allowdustreserve=true
       --developer
+      --grpc-host=0.0.0.0
       --grpc-port=8888
       --lsp-listen=0.0.0.0:12312
       --network=regtest
       --plugin=/usr/local/bin/lspd_cln_plugin
+      --database-upgrade=true
     depends_on:
       - bitcoind
+      - miner
     image: lightningd-lsp
     networks:
-      - lsp-internal
-      - public-lightning
+      # call the host for lightningd 'cln', so the grpc certificate has a valid host. 
+      lsp-internal:
+        aliases:
+          - cln
+      public-lightning:
+      miner:
     volumes:
       - lsp-lightningd:/data/.lightning
 
@@ -139,10 +156,16 @@ services:
       - lsp-lightningd
       - lspd-postgres
     environment:
-      - AUTO_MIGRATE_DATABASE=true
+      - AUTO_MIGRATE_DATABASE=false
       - DATABASE_URL=postgresql://lspd-user:lspd-pass@lspd-postgres/lspd-db?sslmode=disable
+      - POSTGRES_HOST=lspd-postgres
+      - PGPASSWORD=lspd-pass
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=lspd-user
+      - POSTGRES_DB=lspd-db
       - LSPD_PRIVATE_KEY="31d1f2a8daf0c04c78d73e2ff0673d6f1a394dc41ae5b319b7623a6139766766"
-      - NODES=[{"tokens":["lspd-token"],"cln":{"pluginAddress":"cln:12312","grpcAddress":"cln:8888","caCert":"/data/.lightning/regtest/ca.pem","clientCert":"/data/.lightning/regtest/client.pem","clientKey":"/data/.lightning/regtest/client-key.pem"}}]
+      - LSPD_TOKEN=${LSPD_TOKEN}
+      - NODES=[{"tokens":["${LSPD_TOKEN}"],"cln":{"pluginAddress":"cln:12312","grpcAddress":"cln:8888","caCert":"/data/.lightning/regtest/ca.pem","clientCert":"/data/.lightning/regtest/client.pem","clientKey":"/data/.lightning/regtest/client-key.pem"}}]
     image: lspd
     networks:
       - breez-lsp
@@ -161,19 +184,31 @@ services:
     restart: always
     volumes:
       - lspd-postgres:/var/lib/postgresql/data
+  
+  miner:
+    command:
+      --address=0.0.0.0:8888
+      --bitcoin-rpcconnect=bitcoind:18443
+      --bitcoin-rpcpassword=btcpass
+      --bitcoin-rpcuser=btcuser
+      --block-interval-secs=600
+    image: miner
+    networks:
+      - miner
 
 networks:
   breez-internal:
   breez-lsp:
-  greenlight-internal:
+  # greenlight-internal:
   lsp-internal:
+  miner:
   public-internet:
   public-lightning:
 
 volumes:
   bitcoin:
-  greenlight-node1:
-  greenlight-node1-scheduler:
+  # greenlight-node1:
+  # greenlight-node1-scheduler:
   lsp-lightningd:
   lspd-postgres:
   server-postgres:

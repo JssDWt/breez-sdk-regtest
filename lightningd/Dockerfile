@@ -1,11 +1,11 @@
 # $USER name to be used in the `final` image
 ARG USER=cln
-# v24.02.2
-ARG VERSION=a2a136fe3ebef1d028d1e20ebf1f987b8c05bbf8
+# v25.02
+ARG VERSION=427c4c5ce0496795d6361ffc885010298bceff10
 ARG REPOSITORY=https://github.com/ElementsProject/lightning.git
 
 
-FROM debian:bookworm-slim as downloader
+FROM debian:bookworm-slim AS downloader
 
 ARG VERSION
 ARG REPOSITORY
@@ -23,7 +23,7 @@ RUN git init && \
     git checkout FETCH_HEAD
 
 
-FROM debian:bookworm-slim as builder
+FROM debian:bookworm-slim AS builder
 
 RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
@@ -76,7 +76,9 @@ LABEL maintainer="Jesse de Wit (@JssDWt)"
 
 RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
+        inotify-tools \
         libevent-2.1-7 \
+        libsodium-dev \
         python3 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -89,7 +91,7 @@ RUN adduser --disabled-password \
 USER $USER
 
 # Prevents `VOLUME /data/.lightning/` being created as owned by `root`
-RUN mkdir -p "/data/.lightning/"
+RUN mkdir -p "/data/.lightning/regtest"
 
 # Expose volume containing all `lightningd` data
 VOLUME /data/.lightning/
