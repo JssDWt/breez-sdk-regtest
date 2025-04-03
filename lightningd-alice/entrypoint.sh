@@ -30,6 +30,7 @@ do
     sleep 1
 done
 
+lsp_id=$(cat /data/.lightning-lsp/regtest/pubkey)
 lightning-cli --regtest --lightning-dir /data/.lightning connect "$lsp_id" lsp-lightningd
 
 channelcount=$(lightning-cli --regtest --lightning-dir /data/.lightning listpeerchannels | jq '.channels | length')
@@ -49,9 +50,8 @@ then
         echo "Waiting for 20 outputs to be confirmed"
         sleep 1
     done
-    lsp_id=$(cat /data/.lightning-lsp/regtest/pubkey)
+
     echo "Creating channel to peer"
-    
     lightning-cli --regtest --lightning-dir /data/.lightning fundchannel id="$lsp_id" amount=100000000sat push_msat=50000000msat
 
     echo "Telling miner to mine 7 blocks"

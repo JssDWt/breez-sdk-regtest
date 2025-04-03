@@ -97,7 +97,7 @@ RUN mkdir -p "/data/.lightning/regtest"
 VOLUME /data/.lightning/
 
 # Lightning P2P port
-EXPOSE 9735
+EXPOSE 19846
 
 COPY --from=bitcoind /usr/local/bin/bitcoin-cli /usr/local/bin/
 COPY --from=builder /opt/lightning/ /usr/local/
