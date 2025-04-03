@@ -49,6 +49,7 @@ services:
       - NETWORK=regtest
       - NO_LIQUID=true
       - NO_LND=true
+      - NO_RATELIMITS=true
       - NO_SUBSWAP=true
       - NO_SWAPD=true
       - PUBLIC_CHANNEL_TOKENS={}
