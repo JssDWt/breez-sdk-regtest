@@ -85,6 +85,8 @@ services:
       - breez-internal
       - breez-lsp
       - public-internet
+    ports:
+      - 8888:8888
 
   breez-server-postgres:
     environment:
