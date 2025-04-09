@@ -158,6 +158,7 @@ services:
       --bitcoin-rpcuser=btcuser
       --database-upgrade=true
       --dev-allowdustreserve=true
+      --dev-force-privkey=7d1886ac8c00ef7eb53ddc645dab2fe8a48f09940f8a49305aed3253bc49117f
       --developer
       --grpc-host=0.0.0.0
       --grpc-port=8888
