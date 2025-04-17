@@ -1,4 +1,4 @@
-default: docker-bitcoind docker-breez-server docker-lightningd-alice docker-lightningd-lsp docker-lspd docker-miner
+default: docker-bitcoind docker-breez-server docker-lightningd-alice docker-lightningd-lsp docker-lspd docker-miner docker-rgs
 
 docker-bitcoind:
 	docker build -t bitcoind -f bitcoind/Dockerfile bitcoind
@@ -26,3 +26,6 @@ docker-miner:
 
 docker-scheduler:
 	docker build -t greenlight-scheduler -f greenlight-scheduler/Dockerfile greenlight-scheduler
+
+docker-rgs:
+	docker build -t rgs-server -f rgs/Dockerfile rgs

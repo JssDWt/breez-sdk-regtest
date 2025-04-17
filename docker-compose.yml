@@ -37,6 +37,7 @@ services:
       -rpcbind=0.0.0.0
       -rpcpassword=btcpass
       -rpcuser=btcuser
+      -rest
       -server
       -txindex
     image: bitcoind
@@ -48,6 +49,8 @@ services:
     restart: always
     volumes:
       - bitcoin:/data/.bitcoin
+    ports:
+      - 18443:18443
 
   breez-server:
     depends_on:
@@ -229,20 +232,72 @@ services:
     networks:
       - miner
 
+  rgs-nginx:
+    image: nginx:latest
+    volumes:
+      - ./rgs/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - rgs-data:/data:ro
+    depends_on:
+      - rgs-server
+    ports:
+      - 8011:8011
+
+  rgs-server:
+    image: rgs-server
+    volumes:
+      - rgs-data:/usr/src/app/res
+    links:
+      - bitcoind
+      - rgs-postgres
+    depends_on:
+      - lsp-lightningd
+      - rgs-postgres
+    environment:
+      - BITCOIN_REST_DOMAIN=bitcoind
+      - BITCOIN_REST_PATH=/rest/
+      - BITCOIN_REST_PORT=18443
+      - LN_PEERS=0361984fe2a03cc594e97de423bf461096dd26a52e77feda68510377f360e430d4@lsp-lightningd:19846
+      - RAPID_GOSSIP_SYNC_SERVER_DB_HOST=rgs-postgres
+      - RAPID_GOSSIP_SYNC_SERVER_DB_NAME=ln_graph_sync
+      - RAPID_GOSSIP_SYNC_SERVER_DB_PASSWORD=docker
+      - RAPID_GOSSIP_SYNC_SERVER_DB_USER=lightning-rgs
+      - RAPID_GOSSIP_SYNC_SERVER_NETWORK=regtest
+    command: ['sh', '-c', 'echo Give some time for LSP to start ... && sleep 5 && rapid-gossip-sync-server']
+    networks:
+      - miner
+      - public-lightning
+      - rgs-internal
+
+  rgs-postgres:
+    image: postgres:16
+    volumes:
+      - rgs-postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=ln_graph_sync
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_USER=lightning-rgs
+    networks:
+      - rgs-internal
+    ports:
+      - 5432:5432
+
 networks:
+  # greenlight-internal:
   breez-internal:
   breez-lsp:
-  # greenlight-internal:
   lsp-internal:
   miner:
   public-internet:
   public-lightning:
+  rgs-internal:
 
 volumes:
-  bitcoin:
-  # greenlight-node1:
   # greenlight-node1-scheduler:
+  # greenlight-node1:
   alice-lightningd:
+  bitcoin:
   lsp-lightningd:
   lspd-postgres:
+  rgs-data:
+  rgs-postgres: null
   server-postgres:
