@@ -228,6 +228,8 @@ services:
       --bitcoin-rpcpassword=btcpass
       --bitcoin-rpcuser=btcuser
       --block-interval-secs=600
+    depends_on:
+      - bitcoind
     image: miner
     networks:
       - miner
