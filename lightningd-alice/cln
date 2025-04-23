@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+lightning-cli --regtest --lightning-dir /data/.lightning "$@"

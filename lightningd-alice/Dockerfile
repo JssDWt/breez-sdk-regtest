@@ -15,6 +15,8 @@ RUN apt-get update -qq && \
 
 COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
+COPY cln /usr/local/bin/cln
+
 
 USER $USER
 
