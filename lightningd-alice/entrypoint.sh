@@ -52,7 +52,7 @@ then
     done
 
     echo "Creating channel to peer"
-    lightning-cli --regtest --lightning-dir /data/.lightning fundchannel id="$lsp_id" amount=100000000sat push_msat=50000000msat
+    lightning-cli --regtest --lightning-dir /data/.lightning fundchannel id="$lsp_id" amount=100000000sat push_msat=50000000sat
 
     echo "Telling miner to mine 7 blocks"
     curl -i -H "Accept: application/json" "miner:8888/mine?blocks=7"
