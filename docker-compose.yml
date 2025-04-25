@@ -283,6 +283,32 @@ services:
     ports:
       - 5432:5432
 
+  electrs:
+    command:
+      - -vvvv
+      - --network
+      - regtest
+      - --daemon-dir
+      - /config
+      - --daemon-rpc-addr
+      - bitcoind:18443
+      - --cookie
+      - btcuser:btcpass
+      - --http-addr
+      - 0.0.0.0:30000
+      - --cors
+      - "*"
+      - --jsonrpc-import
+    depends_on:
+      - bitcoind
+    entrypoint:
+      - /build/electrs
+    image: ghcr.io/vulpemventures/electrs:latest
+    networks:
+      - miner
+    ports:
+      - 30000:30000
+
 networks:
   # greenlight-internal:
   breez-internal:
@@ -298,6 +324,7 @@ volumes:
   # greenlight-node1:
   alice-lightningd:
   bitcoin:
+  electrs-data:
   lsp-lightningd:
   lspd-postgres:
   rgs-data:
