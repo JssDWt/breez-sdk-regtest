@@ -1,7 +1,7 @@
 # $USER name to be used in the `final` image
 ARG USER=swapd
 # v25.02
-ARG VERSION=80cc1e3f4f80afbffaa95e31f63d91bdb2d85ea9
+ARG VERSION=30cc917675ea1b5e725302bf1754ca91be60db4a
 ARG REPOSITORY=https://github.com/breez/swapd.git
 
 
