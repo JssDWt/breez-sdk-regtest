@@ -18,6 +18,7 @@ services:
       - miner
     image: lightningd-alice
     networks:
+      - breez-internal
       - public-lightning
       - miner
     volumes:
@@ -78,11 +79,11 @@ services:
       - NO_LND=true
       - NO_RATELIMITS=true
       - NO_SUBSWAP=true
-      - NO_SWAPD=true
       - PUBLIC_CHANNEL_TOKENS={}
       - REDIS_URL=breez-server-redis:6379
       - REDIS_DB=1
       - SDK_API_KEY=${SDK_API_KEY}
+      - SWAPD_ADDRESS=http://swapd:58049
     image: breez-server
     networks:
       - breez-internal
@@ -283,6 +284,40 @@ services:
     ports:
       - 5432:5432
 
+  swapd:
+    image: swapd
+    command:
+      --auto-migrate
+      --network=regtest
+      --cln-grpc-address=http://alice-lightningd:8888
+      --cln-grpc-ca-cert=/data/.lightning/regtest/ca.pem
+      --cln-grpc-client-cert=/data/.lightning/regtest/client.pem
+      --cln-grpc-client-key=/data/.lightning/regtest/client-key.pem
+      --log-level=swapd=debug,info
+      --db-url=postgresql://swapd-user:swapd-pass@swapd-postgres/swapd-db?sslmode=disable
+      --bitcoind-rpc-address=http://bitcoind:18443
+      --bitcoind-rpc-user=btcuser
+      --bitcoind-rpc-password=btcpass
+      --chain-poll-interval-seconds=5
+    depends_on:
+      - bitcoind
+      - swapd-postgres
+    networks:
+      - breez-internal
+    volumes:
+      - alice-lightningd:/data/.lightning
+
+  swapd-postgres:
+    image: postgres:16
+    volumes:
+      - swapd-postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=swapd-db
+      - POSTGRES_PASSWORD=swapd-pass
+      - POSTGRES_USER=swapd-user
+    networks:
+      - breez-internal
+
   electrs:
     command:
       - -vvvv
@@ -330,3 +365,4 @@ volumes:
   rgs-data:
   rgs-postgres: null
   server-postgres:
+  swapd-postgres:

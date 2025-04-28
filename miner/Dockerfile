@@ -1,7 +1,7 @@
 # $USER name to be used in the `final` image
 ARG USER=miner
 
-FROM rust:1.78-slim-bookworm AS builder
+FROM rust:1.86-slim-bookworm AS builder
 
 # RUN apt-get update -qq && \
 #     apt-get install -qq -y --no-install-recommends \

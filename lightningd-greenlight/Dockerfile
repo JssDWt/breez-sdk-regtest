@@ -20,7 +20,7 @@ RUN git init && \
     git checkout FETCH_HEAD
 
 
-FROM rust:1.78-slim-bookworm AS plugin-builder
+FROM rust:1.86-slim-bookworm AS plugin-builder
 
 RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
@@ -37,7 +37,7 @@ WORKDIR /app/libs/gl-plugin
 
 RUN cargo build --release
 
-FROM rust:1.78-slim-bookworm AS signerproxy-builder
+FROM rust:1.86-slim-bookworm AS signerproxy-builder
 
 RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \

@@ -1,31 +1,36 @@
-default: docker-bitcoind docker-breez-server docker-lightningd-alice docker-lightningd-lsp docker-lspd docker-miner docker-rgs
+default: bitcoind breez-server lightningd-alice lightningd-lsp lspd miner swapd rgs
 
-docker-bitcoind:
+.PHONY: bitcoind breez-server lightningd lightningd-alice lightningd-greenlight lightningd-lsp lspd miner scheduler swapd rgs
+
+bitcoind:
 	docker build -t bitcoind -f bitcoind/Dockerfile bitcoind
 
-docker-breez-server:
+breez-server:
 	docker build -t breez-server -f breez-server/Dockerfile breez-server
 
-docker-lightningd: docker-bitcoind
+lightningd: bitcoind
 	docker build -t lightningd -f lightningd/Dockerfile lightningd
 
-docker-lightningd-alice:
+lightningd-alice: lightningd
 	docker build -t lightningd-alice -f lightningd-alice/Dockerfile lightningd-alice
 
-docker-lightningd-greenlight: docker-lightningd
+lightningd-greenlight: lightningd
 	docker build -t lightningd-greenlight -f lightningd-greenlight/Dockerfile lightningd-greenlight
 
-docker-lightningd-lsp: docker-lightningd
+lightningd-lsp: lightningd
 	docker build -t lightningd-lsp -f lightningd-lsp/Dockerfile lightningd-lsp
 
-docker-lspd:
+lspd:
 	docker build -t lspd -f lspd/Dockerfile lspd
 
-docker-miner:
+miner:
 	docker build -t miner -f miner/Dockerfile miner
 
-docker-scheduler:
+scheduler:
 	docker build -t greenlight-scheduler -f greenlight-scheduler/Dockerfile greenlight-scheduler
 
-docker-rgs:
+swapd:
+	docker build -t swapd -f swapd/Dockerfile swapd
+
+rgs:
 	docker build -t rgs-server -f rgs/Dockerfile rgs
