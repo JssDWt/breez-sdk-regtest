@@ -83,7 +83,7 @@ services:
       - REDIS_URL=breez-server-redis:6379
       - REDIS_DB=1
       - SDK_API_KEY=${SDK_API_KEY}
-      - SWAPD_ADDRESS=http://swapd:58049
+      - SWAPD_ADDRESS=swapd:58049
     image: breez-server
     networks:
       - breez-internal
@@ -287,6 +287,7 @@ services:
   swapd:
     image: swapd
     command:
+      --address=0.0.0.0:58049
       --auto-migrate
       --network=regtest
       --cln-grpc-address=http://alice-lightningd:8888
