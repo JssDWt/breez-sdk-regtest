@@ -1,19 +1,18 @@
-
 services:
   alice-lightningd:
     command:
-      --bitcoin-rpcconnect=bitcoind
-      --bitcoin-rpcpassword=btcpass
-      --bitcoin-rpcport=18443
-      --bitcoin-rpcuser=btcuser
-      --database-upgrade=true
-      --grpc-host=0.0.0.0
-      --grpc-port=8888
-      --lightning-dir=/data/.lightning
-      --log-level=debug
-      --network=regtest
+      - --bitcoin-rpcconnect=bitcoind-breez
+      - --bitcoin-rpcpassword=btcpass
+      - --bitcoin-rpcport=18443
+      - --bitcoin-rpcuser=btcuser
+      - --database-upgrade=true
+      - --grpc-host=0.0.0.0
+      - --grpc-port=8888
+      - --lightning-dir=/data/.lightning
+      - --log-level=debug
+      - --network=regtest
     depends_on:
-      - bitcoind
+      - bitcoind-breez
       - lsp-lightningd
       - miner
     image: lightningd-alice
@@ -25,40 +24,40 @@ services:
       - alice-lightningd:/data/.lightning
       - lsp-lightningd:/data/.lightning-lsp
 
-  bitcoind:
+  bitcoind-breez:
     command:
-      -addresstype=bech32
-      -debug=mempool
-      -debug=rpc
-      -fallbackfee=0.00000253
-      -logtimestamps
-      -nolisten
-      -regtest
-      -rpcallowip=0.0.0.0/0
-      -rpcbind=0.0.0.0
-      -rpcpassword=btcpass
-      -rpcuser=btcuser
-      -rest
-      -server
-      -txindex
+      - -addresstype=bech32
+      - -debug=mempool
+      - -debug=rpc
+      - -fallbackfee=0.00000253
+      - -logtimestamps
+      - -nolisten
+      - -regtest
+      - -rpcallowip=0.0.0.0/0
+      - -rpcbind=0.0.0.0
+      - -rpcpassword=btcpass
+      - -rpcuser=btcuser
+      - -rest
+      - -server
+      - -txindex
+      - -addnode=boltz-bitcoind:18444
     image: bitcoind
     networks:
       - breez-internal
       # - greenlight-internal
       - lsp-internal
       - miner
+      - boltz
     restart: always
     volumes:
       - bitcoin:/data/.bitcoin
-    ports:
-      - 18443:18443
 
   breez-server:
     depends_on:
       - breez-server-postgres
       - breez-server-redis
     environment:
-      - BITCOIND_HOST=bitcoind
+      - BITCOIND_HOST=bitcoind-breez
       - BITCOIND_PASSWORD=btcpass
       - BITCOIND_PORT=18443
       - BITCOIND_USER=btcuser
@@ -112,7 +111,7 @@ services:
 
   # greenlight-node1:
   #   command:
-  #     --bitcoin-rpcconnect=bitcoind:18443
+  #     --bitcoin-rpcconnect=bitcoind-breez:18443
   #     --bitcoin-rpcpassword=btcpass
   #     --bitcoin-rpcuser=btcuser
   #     --disable-plugin=cln-grpc
@@ -124,7 +123,7 @@ services:
   #     --network=regtest
   #     --subdaemon=hsmd:/usr/local/bin/gl-signerproxy
   #   depends_on:
-  #     - bitcoind
+  #     - bitcoind-breez
   #     - greenlight-node1-scheduler
   #   environment:
   #     - CLN_PLUGIN_LOG=gl_plugin=trace,gl_signerproxy=trace,cln_client=trace,cln_grpc=trace,cln_rpc=trace,info
@@ -156,24 +155,24 @@ services:
 
   lsp-lightningd:
     command:
-      --bitcoin-rpcconnect=bitcoind
-      --bitcoin-rpcpassword=btcpass
-      --bitcoin-rpcport=18443
-      --bitcoin-rpcuser=btcuser
-      --database-upgrade=true
-      --dev-allowdustreserve=true
-      --dev-force-privkey=7d1886ac8c00ef7eb53ddc645dab2fe8a48f09940f8a49305aed3253bc49117f
-      --developer
-      --grpc-host=0.0.0.0
-      --grpc-port=8888
-      --lightning-dir=/data/.lightning
-      --log-level=debug
-      --lsp-listen=0.0.0.0:12312
-      --max-concurrent-htlcs=30
-      --network=regtest
-      --plugin=/usr/local/bin/lspd_cln_plugin
+      - --bitcoin-rpcconnect=bitcoind-breez
+      - --bitcoin-rpcpassword=btcpass
+      - --bitcoin-rpcport=18443
+      - --bitcoin-rpcuser=btcuser
+      - --database-upgrade=true
+      - --dev-allowdustreserve=true
+      - --dev-force-privkey=7d1886ac8c00ef7eb53ddc645dab2fe8a48f09940f8a49305aed3253bc49117f
+      - --developer
+      - --grpc-host=0.0.0.0
+      - --grpc-port=8888
+      - --lightning-dir=/data/.lightning
+      - --log-level=debug
+      - --lsp-listen=0.0.0.0:12312
+      - --max-concurrent-htlcs=30
+      - --network=regtest
+      - --plugin=/usr/local/bin/lspd_cln_plugin
     depends_on:
-      - bitcoind
+      - bitcoind-breez
       - miner
     image: lightningd-lsp
     networks:
@@ -183,6 +182,7 @@ services:
           - cln
       public-lightning:
       miner:
+      boltz:
     ports:
       - 19846:19846
     volumes:
@@ -221,16 +221,16 @@ services:
     restart: always
     volumes:
       - lspd-postgres:/var/lib/postgresql/data
-  
+
   miner:
     command:
-      --address=0.0.0.0:8888
-      --bitcoin-rpcconnect=bitcoind:18443
-      --bitcoin-rpcpassword=btcpass
-      --bitcoin-rpcuser=btcuser
-      --block-interval-secs=600
+      - --address=0.0.0.0:8888
+      - --bitcoin-rpcconnect=bitcoind-breez:18443
+      - --bitcoin-rpcpassword=btcpass
+      - --bitcoin-rpcuser=btcuser
+      - --block-interval-secs=600
     depends_on:
-      - bitcoind
+      - bitcoind-breez
     image: miner
     networks:
       - miner
@@ -250,13 +250,13 @@ services:
     volumes:
       - rgs-data:/usr/src/app/res
     links:
-      - bitcoind
+      - bitcoind-breez
       - rgs-postgres
     depends_on:
       - lsp-lightningd
       - rgs-postgres
     environment:
-      - BITCOIN_REST_DOMAIN=bitcoind
+      - BITCOIN_REST_DOMAIN=bitcoind-breez
       - BITCOIN_REST_PATH=/rest/
       - BITCOIN_REST_PORT=18443
       - LN_PEERS=0361984fe2a03cc594e97de423bf461096dd26a52e77feda68510377f360e430d4@lsp-lightningd:19846
@@ -265,7 +265,7 @@ services:
       - RAPID_GOSSIP_SYNC_SERVER_DB_PASSWORD=docker
       - RAPID_GOSSIP_SYNC_SERVER_DB_USER=lightning-rgs
       - RAPID_GOSSIP_SYNC_SERVER_NETWORK=regtest
-    command: ['sh', '-c', 'echo Give some time for LSP to start ... && sleep 5 && rapid-gossip-sync-server']
+    command: [ 'sh', '-c', 'echo Give some time for LSP to start ... && sleep 5 && rapid-gossip-sync-server' ]
     networks:
       - miner
       - public-lightning
@@ -282,26 +282,26 @@ services:
     networks:
       - rgs-internal
     ports:
-      - 5432:5432
+      - 5431:5432
 
   swapd:
     image: swapd
     command:
-      --address=0.0.0.0:58049
-      --auto-migrate
-      --network=regtest
-      --cln-grpc-address=http://alice-lightningd:8888
-      --cln-grpc-ca-cert=/data/.lightning/regtest/ca.pem
-      --cln-grpc-client-cert=/data/.lightning/regtest/client.pem
-      --cln-grpc-client-key=/data/.lightning/regtest/client-key.pem
-      --log-level=swapd=debug,info
-      --db-url=postgresql://swapd-user:swapd-pass@swapd-postgres/swapd-db?sslmode=disable
-      --bitcoind-rpc-address=http://bitcoind:18443
-      --bitcoind-rpc-user=btcuser
-      --bitcoind-rpc-password=btcpass
-      --chain-poll-interval-seconds=5
+      - --address=0.0.0.0:58049
+      - --auto-migrate
+      - --network=regtest
+      - --cln-grpc-address=http://alice-lightningd:8888
+      - --cln-grpc-ca-cert=/data/.lightning/regtest/ca.pem
+      - --cln-grpc-client-cert=/data/.lightning/regtest/client.pem
+      - --cln-grpc-client-key=/data/.lightning/regtest/client-key.pem
+      - --log-level=swapd=debug,info
+      - --db-url=postgresql://swapd-user:swapd-pass@swapd-postgres/swapd-db?sslmode=disable
+      - --bitcoind-rpc-address=http://bitcoind-breez:18443
+      - --bitcoind-rpc-user=btcuser
+      - --bitcoind-rpc-password=btcpass
+      - --chain-poll-interval-seconds=5
     depends_on:
-      - bitcoind
+      - bitcoind-breez
       - swapd-postgres
     networks:
       - breez-internal
@@ -327,7 +327,7 @@ services:
       - --daemon-dir
       - /config
       - --daemon-rpc-addr
-      - bitcoind:18443
+      - bitcoind-breez:18443
       - --cookie
       - btcuser:btcpass
       - --http-addr
@@ -336,7 +336,7 @@ services:
       - "*"
       - --jsonrpc-import
     depends_on:
-      - bitcoind
+      - bitcoind-breez
     entrypoint:
       - /build/electrs
     image: ghcr.io/vulpemventures/electrs:latest
@@ -354,6 +354,9 @@ networks:
   public-internet:
   public-lightning:
   rgs-internal:
+  boltz:
+    name: boltz_default
+    external: true
 
 volumes:
   # greenlight-node1-scheduler:
