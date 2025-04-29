@@ -47,7 +47,6 @@ services:
       # - greenlight-internal
       - lsp-internal
       - miner
-    restart: always
     volumes:
       - bitcoin:/data/.bitcoin
     ports:
@@ -100,7 +99,6 @@ services:
     image: postgres:16
     networks:
       - breez-internal
-    restart: always
     volumes:
       - server-postgres:/var/lib/postgresql/data
 
@@ -108,7 +106,6 @@ services:
     image: redis:7.2.4
     networks:
       - breez-internal
-    restart: always
 
   # greenlight-node1:
   #   command:
@@ -218,7 +215,6 @@ services:
     image: postgres:16
     networks:
       - lsp-internal
-    restart: always
     volumes:
       - lspd-postgres:/var/lib/postgresql/data
   
