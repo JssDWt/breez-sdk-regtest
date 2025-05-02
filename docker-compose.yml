@@ -332,6 +332,9 @@ services:
       - btcuser:btcpass
       - --http-addr
       - 0.0.0.0:30000
+      ## Raw electrum API.
+      - --electrum-rpc-addr
+      - 0.0.0.0:50000
       - --cors
       - "*"
       - --jsonrpc-import
@@ -344,6 +347,45 @@ services:
       - miner
     ports:
       - 30000:30000
+
+  mempool-api:
+    image: mempool/backend:latest
+    command: "./wait-for-it.sh mempool-db:3306 --timeout=720 --strict -- ./start.sh"
+    environment:
+      CORE_RPC_HOST: "bitcoind"
+      CORE_RPC_PASSWORD: "btcpass"
+      CORE_RPC_PORT: "18443"
+      CORE_RPC_USERNAME: "btcuser"
+      DATABASE_ENABLED: true
+      DATABASE_HOST: "mempool-db"
+      DATABASE_PASSWORD: "mempool"
+      DATABASE_USERNAME: "mempool"
+      ELECTRUM_HOST: "electrs"
+      ELECTRUM_PORT: "50000"
+      ELECTRUM_TLS_ENABLED: "false"
+      MEMPOOL_BACKEND: "electrum"
+      MEMPOOL_NETWORK: "regtest"
+    depends_on:
+      - bitcoind
+      - electrs
+      - mempool-db
+    networks:
+      - miner
+    ports:
+      - 8999:8999
+    user: 1000:1000
+
+  mempool-db:
+    image: mariadb:10.5.21
+    environment:
+      MYSQL_ROOT_PASSWORD: "admin"
+      MYSQL_DATABASE: "mempool"
+      MYSQL_USER: "mempool"
+      MYSQL_PASSWORD: "mempool"
+    networks:
+      - miner
+    volumes:
+      - mempool-db:/var/lib/mysql
 
 networks:
   # greenlight-internal:
@@ -367,3 +409,4 @@ volumes:
   rgs-postgres: null
   server-postgres:
   swapd-postgres:
+  mempool-db:
