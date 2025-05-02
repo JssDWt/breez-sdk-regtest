@@ -8,7 +8,7 @@ services:
       --bitcoin-rpcuser=btcuser
       --database-upgrade=true
       --grpc-host=0.0.0.0
-      --grpc-port=8888
+      --grpc-port=443
       --lightning-dir=/data/.lightning
       --log-level=debug
       --network=regtest
@@ -286,7 +286,7 @@ services:
       --address=0.0.0.0:58049
       --auto-migrate
       --network=regtest
-      --cln-grpc-address=http://alice-lightningd:8888
+      --cln-grpc-address=https://alice-lightningd
       --cln-grpc-ca-cert=/data/.lightning/regtest/ca.pem
       --cln-grpc-client-cert=/data/.lightning/regtest/client.pem
       --cln-grpc-client-key=/data/.lightning/regtest/client-key.pem
