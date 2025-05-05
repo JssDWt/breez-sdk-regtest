@@ -18,9 +18,12 @@ services:
       - miner
     image: lightningd-alice
     networks:
-      - breez-internal
-      - public-lightning
-      - miner
+      # call the host for alice-lightningd 'cln', so the grpc certificate has a valid host.
+      breez-internal:
+        aliases:
+          - cln
+      public-lightning:
+      miner:
     volumes:
       - alice-lightningd:/data/.lightning
       - lsp-lightningd:/data/.lightning-lsp
@@ -174,7 +177,7 @@ services:
       - miner
     image: lightningd-lsp
     networks:
-      # call the host for lightningd 'cln', so the grpc certificate has a valid host. 
+      # call the host for lightningd 'cln', so the grpc certificate has a valid host.
       lsp-internal:
         aliases:
           - cln
@@ -286,7 +289,7 @@ services:
       --address=0.0.0.0:58049
       --auto-migrate
       --network=regtest
-      --cln-grpc-address=https://alice-lightningd
+      --cln-grpc-address=https://cln:443
       --cln-grpc-ca-cert=/data/.lightning/regtest/ca.pem
       --cln-grpc-client-cert=/data/.lightning/regtest/client.pem
       --cln-grpc-client-key=/data/.lightning/regtest/client-key.pem
