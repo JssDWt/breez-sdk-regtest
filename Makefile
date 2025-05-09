@@ -1,6 +1,6 @@
 default: bitcoind breez-server lightningd-alice lightningd-lsp lspd miner swapd rgs
 
-.PHONY: bitcoind breez-server lightningd lightningd-alice lightningd-greenlight lightningd-lsp lspd miner scheduler swapd rgs
+.PHONY: bitcoind breez-server lightningd lightningd-alice lightningd-greenlight lightningd-lsp lspd miner scheduler swapd rgs vss
 
 bitcoind:
 	docker build -t bitcoind -f bitcoind/Dockerfile bitcoind
@@ -34,3 +34,6 @@ swapd:
 
 rgs:
 	docker build -t rgs-server -f rgs/Dockerfile rgs
+
+vss:
+	docker build -t vss-server -f vss/Dockerfile vss
