@@ -7,6 +7,12 @@ echo "Core-Lightning starting"
 while read -r i; do if [ "$i" = "lightning-rpc" ]; then break; fi; done \
     < <(inotifywait -e create,open --format '%f' --quiet "/data/.lightning/regtest" --monitor)
 
+echo "Core-Lightning generating keys and certificates"
+while read -r i; do if [ "$i" = "client-key.pem" ]; then break; fi; done \
+    < <(inotifywait -e create,open --format '%f' --quiet "/data/.lightning/regtest" --monitor)
+echo "Changing permissions for /data/.lightning/regtest/client-key.pem"
+chmod a+r /data/.lightning/regtest/client-key.pem
+
 while lightning-cli --regtest --lightning-dir /data/.lightning getinfo | jq -e 'has("warning_bitcoind_sync") or has("warning_lightningd_sync")' > /dev/null
 do
     echo "Waiting for node to sync to chain"
