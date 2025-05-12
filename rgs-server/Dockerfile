@@ -43,6 +43,12 @@ RUN adduser --disabled-password \
 
 USER $USER
 
+RUN mkdir -p "/data/.rgs"
+
+VOLUME /data/.rgs/
+
+ENV RAPID_GOSSIP_SYNC_SERVER_CACHES_PATH=/data/.rgs
+
 COPY --from=builder /usr/local/cargo/bin/rapid-gossip-sync-server /usr/local/bin/
 
 ENTRYPOINT ["rapid-gossip-sync-server"]
