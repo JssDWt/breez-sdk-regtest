@@ -1,39 +1,43 @@
+BUILD = docker build --progress=plain -t $(1) -f $(1)/Dockerfile $(1)
+SUBDIRS_WITH_SLASH := $(sort $(dir $(wildcard */.)))
+SUBDIRS := $(patsubst %/,%,$(SUBDIRS_WITH_SLASH))
+
 default: bitcoind breez-server lightningd-alice lightningd-lsp lspd miner rgs-server swapd vss-server
 
-.PHONY: bitcoind breez-server greenlight-scheduler lightningd lightningd-alice lightningd-greenlight lightningd-lsp lspd miner rgs-server swapd vss-server
+.PHONY: $(SUBDIRS)
 
 bitcoind:
-	docker build -t bitcoind -f bitcoind/Dockerfile bitcoind
+	$(call BUILD,$@)
 
 breez-server:
-	docker build -t breez-server -f breez-server/Dockerfile breez-server
+	$(call BUILD,$@)
 
 greenlight-scheduler:
-	docker build -t greenlight-scheduler -f greenlight-scheduler/Dockerfile greenlight-scheduler
+	$(call BUILD,$@)
 
 lightningd: bitcoind
-	docker build -t lightningd -f lightningd/Dockerfile lightningd
+	$(call BUILD,$@)
 
 lightningd-alice: lightningd
-	docker build -t lightningd-alice -f lightningd-alice/Dockerfile lightningd-alice
+	$(call BUILD,$@)
 
 lightningd-greenlight: lightningd
-	docker build -t lightningd-greenlight -f lightningd-greenlight/Dockerfile lightningd-greenlight
+	$(call BUILD,$@)
 
 lightningd-lsp: lightningd
-	docker build -t lightningd-lsp -f lightningd-lsp/Dockerfile lightningd-lsp
+	$(call BUILD,$@)
 
 lspd:
-	docker build -t lspd -f lspd/Dockerfile lspd
+	$(call BUILD,$@)
 
 miner:
-	docker build -t miner -f miner/Dockerfile miner
+	$(call BUILD,$@)
 
 rgs-server:
-	docker build -t rgs-server -f rgs-server/Dockerfile rgs-server
+	$(call BUILD,$@)
 
 swapd:
-	docker build -t swapd -f swapd/Dockerfile swapd
+	$(call BUILD,$@)
 
 vss-server:
-	docker build -t vss-server -f vss-server/Dockerfile vss-server
+	$(call BUILD,$@)
