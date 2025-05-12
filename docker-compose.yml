@@ -261,7 +261,7 @@ services:
   rgs-nginx:
     image: nginx:latest
     volumes:
-      - ./rgs/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./rgs-server/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - rgs-data:/data:ro
     depends_on:
       - rgs-server
@@ -353,7 +353,7 @@ services:
     ports:
       - 3080:3080
     volumes:
-      - ./vss/vss-server-config.toml:/etc/vss-server-config.toml:ro
+      - ./vss-server/vss-server-config.toml:/etc/vss-server-config.toml:ro
 
   vss-postgres:
     image: postgres:16
@@ -364,7 +364,7 @@ services:
     networks:
       - vss-internal
     volumes:
-      - ./vss/v0_create_vss_db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./vss-server/v0_create_vss_db.sql:/docker-entrypoint-initdb.d/init.sql:ro
       - vss-postgres:/var/lib/postgresql/data
 
 networks:
