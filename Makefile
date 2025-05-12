@@ -1,4 +1,4 @@
-default: bitcoind breez-server lightningd-alice lightningd-lsp lspd miner swapd rgs
+default: bitcoind breez-server lightningd-alice lightningd-lsp lspd miner swapd rgs vss
 
 .PHONY: bitcoind breez-server lightningd lightningd-alice lightningd-greenlight lightningd-lsp lspd miner scheduler swapd rgs vss
 
