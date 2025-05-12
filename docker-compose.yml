@@ -386,6 +386,31 @@ services:
     volumes:
       - mempool-db:/var/lib/mysql
 
+  vss-server:
+    image: vss-server
+    command:
+      /etc/vss-server-config.toml
+    depends_on:
+      - vss-postgres
+    networks:
+      - vss-internal
+    ports:
+      - 3080:3080
+    volumes:
+      - ./vss/vss-server-config.toml:/etc/vss-server-config.toml:ro
+
+  vss-postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    networks:
+      - vss-internal
+    volumes:
+      - ./vss/v0_create_vss_db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - vss-postgres:/var/lib/postgresql/data
+
 networks:
   # greenlight-internal:
   breez-internal:
@@ -395,6 +420,7 @@ networks:
   public-internet:
   public-lightning:
   rgs-internal:
+  vss-internal:
 
 volumes:
   # greenlight-node1-scheduler:
@@ -404,8 +430,9 @@ volumes:
   electrs-data:
   lsp-lightningd:
   lspd-postgres:
+  mempool-db:
   rgs-data:
   rgs-postgres: null
   server-postgres:
   swapd-postgres:
-  mempool-db:
+  vss-postgres:
