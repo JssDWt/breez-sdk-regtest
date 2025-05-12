@@ -84,6 +84,7 @@ services:
       - PUBLIC_CHANNEL_TOKENS={}
       - REDIS_URL=breez-server-redis:6379
       - REDIS_DB=1
+      - REVERSE_SWAP_ROUTING_NODE=0361984fe2a03cc594e97de423bf461096dd26a52e77feda68510377f360e430d4
       - SDK_API_KEY=${SDK_API_KEY}
       - SWAPD_ADDRESS=swapd:58049
     image: breez-server
