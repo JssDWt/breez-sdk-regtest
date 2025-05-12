@@ -1,12 +1,15 @@
 default: bitcoind breez-server lightningd-alice lightningd-lsp lspd miner rgs-server swapd vss-server
 
-.PHONY: bitcoind breez-server lightningd lightningd-alice lightningd-greenlight lightningd-lsp lspd miner scheduler rgs-server swapd vss-server
+.PHONY: bitcoind breez-server greenlight-scheduler lightningd lightningd-alice lightningd-greenlight lightningd-lsp lspd miner rgs-server swapd vss-server
 
 bitcoind:
 	docker build -t bitcoind -f bitcoind/Dockerfile bitcoind
 
 breez-server:
 	docker build -t breez-server -f breez-server/Dockerfile breez-server
+
+greenlight-scheduler:
+	docker build -t greenlight-scheduler -f greenlight-scheduler/Dockerfile greenlight-scheduler
 
 lightningd: bitcoind
 	docker build -t lightningd -f lightningd/Dockerfile lightningd
@@ -28,9 +31,6 @@ miner:
 
 rgs-server:
 	docker build -t rgs-server -f rgs-server/Dockerfile rgs-server
-
-scheduler:
-	docker build -t greenlight-scheduler -f greenlight-scheduler/Dockerfile greenlight-scheduler
 
 swapd:
 	docker build -t swapd -f swapd/Dockerfile swapd
