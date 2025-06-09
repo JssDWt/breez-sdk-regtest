@@ -36,6 +36,9 @@ miner:
 rgs-server:
 	$(call BUILD,$@)
 
+slow-proxy:
+	$(call BUILD,$@)
+
 swapd:
 	$(call BUILD,$@)
 

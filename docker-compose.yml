@@ -343,6 +343,18 @@ services:
     networks:
       - breez-internal
 
+  vss-server-slow:
+    image: slow-proxy
+    command: ['sh', '-c', '/bin/simulate-4g.sh && socat -d -d TCP-LISTEN:3080,reuseaddr,fork TCP:vss-server:3080']
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - vss-server
+    networks:
+      - vss-internal
+    ports:
+      - 3081:3080
+
   vss-server:
     image: vss-server
     command:
