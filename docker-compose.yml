@@ -259,6 +259,26 @@ services:
     networks:
       - miner
 
+  lsps2-server:
+    environment:
+      - ESPLORA_URL=http://electrs:30000
+      - LISTENING_ADDRESS=0.0.0.0:9735
+      - MNEMONIC=hip liar they despair head rookie act fresh long joy power orient
+      - NETWORK=regtest
+      - RPC_LISTEN_ADDRESS=0.0.0.0:9736
+      - RUST_LOG=debug
+      - STORAGE_PATH=/data
+    depends_on:
+      - electrs
+    image: lsps2-server
+    networks:
+      - miner
+      - public-lightning
+    ports:
+      - 9735:9735
+    volumes:
+      - lsps2-server-data:/data
+
   rgs-nginx:
     image: nginx:latest
     volumes:
@@ -399,6 +419,7 @@ volumes:
   electrs-data:
   lsp-lightningd:
   lspd-postgres:
+  lsps2-server-data:
   mempool-db:
   rgs-data:
   rgs-postgres: null
