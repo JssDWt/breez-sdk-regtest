@@ -132,12 +132,12 @@ fn build() -> Result<Node> {
     let service_config = LSPS2ServiceConfig {
         advertise_service: false,
         channel_opening_fee_ppm: 100_000,
-        channel_over_provisioning_ppm: 1000,
+        channel_over_provisioning_ppm: 1_000_000, // 100%
         min_channel_opening_fee_msat: 1_000_000,
         min_channel_lifetime: 100_000,
         max_client_to_self_delay: 10000,
         require_token: lsp_token,
-        min_payment_size_msat:   1_000_000,
+        min_payment_size_msat: 1_000_000,
         max_payment_size_msat: 100_000_000,
     };
     builder.set_liquidity_provider_lsps2(service_config);
