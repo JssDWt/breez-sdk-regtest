@@ -35,6 +35,18 @@ async fn newaddr(State(state): State<AppState>) -> String {
 #[tokio::main]
 async fn main() -> Result<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
+        .format(|buf, record| {
+            use std::io::Write;
+            let ts = buf.timestamp_millis();
+            writeln!(
+                buf,
+                "[{ts} {} {}:{}] {}",
+                record.level(),
+                record.target(),
+                record.line().unwrap_or(0),
+                record.args()
+            )
+        })
         .filter_module("hyper", log::LevelFilter::Info)
         .filter_module("reqwest", log::LevelFilter::Info)
         .init();
