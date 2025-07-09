@@ -9,12 +9,12 @@ COPY Cargo.toml Cargo.lock ./
 
 RUN mkdir src && \
     touch src/lib.rs && \
-    cargo build && \
+    cargo build --release && \
     rm -rf src
 
 COPY src/ src/
 
-RUN cargo install --debug --path .
+RUN cargo install --path .
 
 
 FROM debian:bookworm-slim AS final

@@ -11,7 +11,7 @@ use ldk_node::bitcoin::Network;
 use ldk_node::lightning::ln::msgs::SocketAddress;
 use ldk_node::liquidity::LSPS2ServiceConfig;
 use ldk_node::{Builder, Node};
-use log::{error, info};
+use log::{LevelFilter, error, info};
 use tokio::signal::ctrl_c;
 use tokio::signal::unix::{SignalKind, signal};
 use tokio::sync::oneshot;
@@ -47,8 +47,8 @@ async fn main() -> Result<()> {
                 record.args()
             )
         })
-        .filter_module("hyper", log::LevelFilter::Info)
-        .filter_module("reqwest", log::LevelFilter::Info)
+        .filter_module("hyper", LevelFilter::Info)
+        .filter_module("reqwest", LevelFilter::Info)
         .init();
 
     info!("Building node...");
@@ -131,7 +131,7 @@ fn build() -> Result<Node> {
     let lsp_token = env::var("LSP_TOKEN").ok();
     let service_config = LSPS2ServiceConfig {
         advertise_service: false,
-        channel_opening_fee_ppm: 100_000,
+        channel_opening_fee_ppm: 100_000,         // 10%
         channel_over_provisioning_ppm: 1_000_000, // 100%
         min_channel_opening_fee_msat: 1_000_000,
         min_channel_lifetime: 100_000,
