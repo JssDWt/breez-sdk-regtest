@@ -23,6 +23,11 @@ ARG USER
 
 LABEL maintainer="Jesse de Wit (@JssDWt)"
 
+RUN apt-get update -qq && \
+    apt-get install -qq -y --no-install-recommends curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN adduser --disabled-password \
             --home "/data" \
             --gecos "" \
@@ -30,6 +35,7 @@ RUN adduser --disabled-password \
 
 USER $USER
 
+COPY entrypoint.sh /
 COPY --from=builder /usr/local/cargo/bin/lsps2-server /usr/local/bin/
 
-ENTRYPOINT ["lsps2-server"]
+ENTRYPOINT ["/entrypoint.sh"]

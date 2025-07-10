@@ -32,6 +32,13 @@ async fn newaddr(State(state): State<AppState>) -> String {
     }
 }
 
+async fn sync(State(state): State<AppState>) -> String {
+    match state.node.sync_wallets() {
+        Ok(()) => "Synced".to_string(),
+        Err(e) => format!("Failed to sync wallets: {e}"),
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
@@ -69,6 +76,7 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .route("/getid", get(getid))
         .route("/newaddr", get(newaddr))
+        .route("/sync", get(sync))
         .with_state(state);
     let (shutdown_tx, shutdown_rx) = oneshot::channel::<()>();
     let shutdown_signal = async move {

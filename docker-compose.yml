@@ -132,6 +132,7 @@ services:
       - --jsonrpc-import
     depends_on:
       - bitcoind
+      - miner
     entrypoint:
       - /build/electrs
     image: ghcr.io/vulpemventures/electrs:latest
